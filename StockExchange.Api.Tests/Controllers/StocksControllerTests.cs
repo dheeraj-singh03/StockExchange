@@ -1,6 +1,9 @@
 ﻿using Bogus;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore.Storage.Json;
 using Moq;
+using Newtonsoft.Json;
 using StockExchange.Api.Controllers;
 using StockExchange.Core.Interfaces;
 using StockExchange.Core.Model;
@@ -38,7 +41,7 @@ namespace StockExchange.Api.Tests.Controllers
 
 
             // Act
-            var result = await stocksController.GetAllStockValues();
+            var result = await stocksController.GetAllStockValuesAsync();
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
@@ -55,11 +58,14 @@ namespace StockExchange.Api.Tests.Controllers
                 .ReturnsAsync(new List<StockModel>() as IList<StockModel>);
 
             // Act
-            var result = await stocksController.GetAllStockValues();
+            var result = await stocksController.GetAllStockValuesAsync();
 
             // Assert
             var notFound = Assert.IsType<NotFoundObjectResult>(result);
-            Assert.Equal("No Stock Found", notFound.Value);
+            var json = JsonConvert.SerializeObject(notFound.Value);
+            dynamic obj = JsonConvert.DeserializeObject<dynamic>(json);
+
+            Assert.Equal("No Stock Found", (string)obj.error);
         }
 
         [Fact]
@@ -76,7 +82,7 @@ namespace StockExchange.Api.Tests.Controllers
                 .ReturnsAsync(mockStocks as IList<StockModel>);
 
             // Act
-            var result = await stocksController.GetStockValuesByTickerSymbols("AAPL");
+            var result = await stocksController.GetStockValuesByTickerSymbolsAsync("AAPL");
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
@@ -88,11 +94,14 @@ namespace StockExchange.Api.Tests.Controllers
         public async Task GetStockValuesByTickerSymbols_WhenQueryIsEmpty_ReturnsBadRequest()
         {
             // Act
-            var result = await stocksController.GetStockValuesByTickerSymbols("");
+            var result = await stocksController.GetStockValuesByTickerSymbolsAsync("");
 
             // Assert
             var badRequest = Assert.IsType<BadRequestObjectResult>(result);
-            Assert.Equal("Ticker symbols are required.", badRequest.Value);
+            var json = JsonConvert.SerializeObject(badRequest.Value);
+            dynamic obj = JsonConvert.DeserializeObject<dynamic>(json);
+
+            Assert.Equal("Ticker symbols are required.", (string)obj.error);
         }
 
         [Fact]
@@ -104,25 +113,28 @@ namespace StockExchange.Api.Tests.Controllers
                 .ReturnsAsync(new List<StockModel>() as IList<StockModel>);
 
             // Act
-            var result = await stocksController.GetStockValuesByTickerSymbols("XYZ");
+            var result = await stocksController.GetStockValuesByTickerSymbolsAsync("XYZ");
 
             // Assert
             var notFound = Assert.IsType<NotFoundObjectResult>(result);
-            Assert.Equal("Stocks Not Found", notFound.Value);
+            var json = JsonConvert.SerializeObject(notFound.Value);
+            dynamic obj = JsonConvert.DeserializeObject<dynamic>(json);
+
+            Assert.Equal("Stocks Not Found", (string)obj.error);
         }
 
         [Fact]
-        public void GetStockValuesByTickerSymbol_WhenValidSymbol_ReturnsOk()
+        public async Task GetStockValuesByTickerSymbol_WhenValidSymbol_ReturnsOk()
         {
             // Arrange
             var mockStock = new StockModel { StockSymbol = faker.Random.String2(5) };
 
             stockServiceMock
-                .Setup(s => s.GetStock(It.IsAny<string>()))
-                .Returns(mockStock);
+                .Setup(s => s.GetStockAsync(It.IsAny<string>()))
+                .ReturnsAsync(mockStock);
 
             // Act
-            var result = stocksController.GetStockValuesByTickerSymbol(mockStock.StockSymbol);
+            var result = await stocksController.GetStockValuesByTickerSymbolAsync(mockStock.StockSymbol);
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
@@ -131,30 +143,36 @@ namespace StockExchange.Api.Tests.Controllers
         }
 
         [Fact]
-        public void GetStockValuesByTickerSymbol_WhenQueryIsEmpty_ReturnsBadRequest()
+        public async Task GetStockValuesByTickerSymbol_WhenQueryIsEmpty_ReturnsBadRequest()
         {
             // Act
-            var result = stocksController.GetStockValuesByTickerSymbol("");
+            var result = await stocksController.GetStockValuesByTickerSymbolAsync("");
 
             // Assert
             var badRequest = Assert.IsType<BadRequestObjectResult>(result);
-            Assert.Equal("Ticker symbols are required.", badRequest.Value);
+            var json = JsonConvert.SerializeObject(badRequest.Value);
+            dynamic obj = JsonConvert.DeserializeObject<dynamic>(json);
+
+            Assert.Equal("Ticker symbol is required.", (string)obj.error);
         }
 
         [Fact]
-        public void GetStockValuesByTickerSymbol_WhenStockIsNull_ReturnsNotFound()
+        public async Task GetStockValuesByTickerSymbol_WhenStockIsNull_ReturnsNotFound()
         {
             // Arrange
             stockServiceMock
-                .Setup(s => s.GetStock(It.IsAny<string>()))
-                .Returns((StockModel)null);
+                .Setup(s => s.GetStockAsync(It.IsAny<string>()))
+                .ReturnsAsync((StockModel)null);
 
             // Act
-            var result = stocksController.GetStockValuesByTickerSymbol("XYZ");
+            var result = await stocksController.GetStockValuesByTickerSymbolAsync("XYZ");
 
             // Assert
             var notFound = Assert.IsType<NotFoundObjectResult>(result);
-            Assert.Equal("Stock Not Found", notFound.Value);
+            var json = JsonConvert.SerializeObject(notFound.Value);
+            dynamic obj = JsonConvert.DeserializeObject<dynamic>(json);
+
+            Assert.Equal("Stock Not Found", (string)obj.error);
         }
 
         [Fact]
@@ -168,7 +186,7 @@ namespace StockExchange.Api.Tests.Controllers
                 .Returns(Task.CompletedTask);
 
             // Act
-            var result = await stocksController.AddStock(stock);
+            var result = await stocksController.AddStockAsync(new StockTickerSymbolModel { StockTickerSymbol = stock });
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
@@ -179,11 +197,14 @@ namespace StockExchange.Api.Tests.Controllers
         public async Task AddStock_WhenStockIsNull_ReturnsBadRequest()
         {
             // Act
-            var result = await stocksController.AddStock(null);
+            var result = await stocksController.AddStockAsync(new StockTickerSymbolModel { StockTickerSymbol = "" });
 
             // Assert
             var badRequest = Assert.IsType<BadRequestObjectResult>(result);
-            Assert.Equal("Stock is null.", badRequest.Value);
+            var json = JsonConvert.SerializeObject(badRequest.Value);
+            dynamic obj = JsonConvert.DeserializeObject<dynamic>(json);
+
+            Assert.Equal("Stock is null.", (string)obj.error);
         }
     }
 }

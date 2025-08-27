@@ -15,7 +15,9 @@ namespace StockExchange.Infrastructure.Repositories
 
         public async Task<IEnumerable<Stock>> GetAllStocksAsync()
         {
-            return await stockExchangeDbContext.Stocks.ToListAsync().ConfigureAwait(false);
+            return await stockExchangeDbContext.Stocks
+                .ToListAsync()
+                .ConfigureAwait(false);
         }
 
         public async Task AddStockAsync(string tickerSymbol)
@@ -25,12 +27,16 @@ namespace StockExchange.Infrastructure.Repositories
                 TickerSymbol = tickerSymbol
             }).ConfigureAwait(false);
 
-            await stockExchangeDbContext.SaveChangesAsync().ConfigureAwait(false);
+            await stockExchangeDbContext
+                .SaveChangesAsync()
+                .ConfigureAwait(false);
         }
 
-        public Stock GetStockBySymbol(string symbol)
+        public async Task<Stock> GetStockBySymbolAsync(string symbol)
         {
-            return stockExchangeDbContext.Stocks.FirstOrDefault(x => x.TickerSymbol == symbol);
+            return await stockExchangeDbContext.Stocks
+                .FirstOrDefaultAsync(x => x.TickerSymbol == symbol)
+                .ConfigureAwait(false);
         }
 
         public async Task<IEnumerable<Stock>> GetAllStocksRangeAsync(IList<string> symbols)
@@ -38,7 +44,8 @@ namespace StockExchange.Infrastructure.Repositories
             return await stockExchangeDbContext.Stocks
                 .Where(s => symbols.Contains(s.TickerSymbol))
                 .Include(s => s.TradeNotifications)
-                .ToListAsync().ConfigureAwait(false);
+                .ToListAsync()
+                .ConfigureAwait(false);
         }
     }
 }

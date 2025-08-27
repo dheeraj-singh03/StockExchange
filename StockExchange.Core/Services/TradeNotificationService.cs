@@ -23,7 +23,7 @@ namespace StockExchange.Core.Services
 
         public async Task<(bool Success, string Message)> ProcessTradeNotificationAsync(TradeNotificationModel tradeNotification)
         {
-            var stock = stockRepository.GetStockBySymbol(tradeNotification.TickerSymbol);
+            var stock = await stockRepository.GetStockBySymbolAsync(tradeNotification.TickerSymbol).ConfigureAwait(false);
             if(stock == null)
             {
                 return (false, "Stock Not Found");

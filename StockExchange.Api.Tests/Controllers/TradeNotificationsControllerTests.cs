@@ -1,6 +1,7 @@
 ﻿using Bogus;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
+using Newtonsoft.Json;
 using StockExchange.Api.Controllers;
 using StockExchange.Core.Interfaces;
 using StockExchange.Core.Model;
@@ -41,7 +42,7 @@ namespace StockExchange.Api.Tests.Controllers
                 .ReturnsAsync((true, expectedMessage));
 
             // Act
-            var result = await tradeNotificationsController.PostTradeNotification(tradeNotification);
+            var result = await tradeNotificationsController.PostTradeNotificationAsync(tradeNotification);
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
@@ -52,11 +53,14 @@ namespace StockExchange.Api.Tests.Controllers
         public async Task PostTradeNotification_WhenTradeIsNull_ReturnsBadRequest()
         {
             // Act
-            var result = await tradeNotificationsController.PostTradeNotification(null);
+            var result = await tradeNotificationsController.PostTradeNotificationAsync(null);
 
             // Assert
             var badRequest = Assert.IsType<BadRequestObjectResult>(result);
-            Assert.Equal("Trade notification is null.", badRequest.Value);
+            var json = JsonConvert.SerializeObject(badRequest.Value);
+            dynamic obj = JsonConvert.DeserializeObject<dynamic>(json);
+
+            Assert.Equal("Trade notification is null.", (string)obj.error);
         }
 
         [Fact]
@@ -78,11 +82,14 @@ namespace StockExchange.Api.Tests.Controllers
                 .ReturnsAsync((false, failureMessage));
 
             // Act
-            var result = await tradeNotificationsController.PostTradeNotification(tradeNotification);
+            var result = await tradeNotificationsController.PostTradeNotificationAsync(tradeNotification);
 
             // Assert
             var badRequest = Assert.IsType<BadRequestObjectResult>(result);
-            Assert.Equal(failureMessage, badRequest.Value);
+            var json = JsonConvert.SerializeObject(badRequest.Value);
+            dynamic obj = JsonConvert.DeserializeObject<dynamic>(json);
+
+            Assert.Equal(failureMessage, (string)obj.error);
         }
     }
 }

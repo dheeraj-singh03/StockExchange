@@ -19,18 +19,18 @@ namespace StockExchange.Api.Controllers
         [HttpPost]
         [Authorize(Roles = "Write")]
         [Route("trade")]
-        public async Task<IActionResult> PostTradeNotification([FromBody] TradeNotificationModel tradeNotification)
+        public async Task<IActionResult> PostTradeNotificationAsync([FromBody] TradeNotificationModel tradeNotification)
         {
             if (tradeNotification == null)
             {
-                return BadRequest("Trade notification is null.");
+                return BadRequest(new { error = "Trade notification is null." });
             }
 
             var (isProcessed, message) = await tradeNotificationService.ProcessTradeNotificationAsync(tradeNotification);
             
             if (!isProcessed)
             {
-                return BadRequest(message);
+                return BadRequest(new { error = message });
             }
 
             return Ok(message);

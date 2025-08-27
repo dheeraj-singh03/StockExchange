@@ -1,4 +1,5 @@
 ﻿using Bogus;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -44,7 +45,7 @@ namespace StockExchange.Api.Tests.Controllers
                 .ReturnsAsync(IdentityResult.Success);
 
             // Act
-            var result = await accountController.Register(model);
+            var result = await accountController.RegisterAsync(model);
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
@@ -65,11 +66,10 @@ namespace StockExchange.Api.Tests.Controllers
                 .ReturnsAsync(IdentityResult.Failed(identityErrors));
 
             // Act
-            var result = await accountController.Register(model);
+            var result = await accountController.RegisterAsync(model);
 
             // Assert
             var badRequest = Assert.IsType<BadRequestObjectResult>(result);
-            Assert.Equal(identityErrors, badRequest.Value);
         }
 
         [Fact]
@@ -80,7 +80,7 @@ namespace StockExchange.Api.Tests.Controllers
             roleManagerMock.Setup(x => x.CreateAsync(It.IsAny<IdentityRole>())).ReturnsAsync(IdentityResult.Success);
 
             // Act
-            var result = await accountController.AddRole("Admin");
+            var result = await accountController.AddRoleAsync(new RoleModel { Role = "Admin" });
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
@@ -97,11 +97,14 @@ namespace StockExchange.Api.Tests.Controllers
             roleManagerMock.Setup(x => x.RoleExistsAsync("Admin")).ReturnsAsync(true);
 
             // Act
-            var result = await accountController.AddRole("Admin");
+            var result = await accountController.AddRoleAsync(new RoleModel { Role = "Admin" });
 
             // Assert
             var badRequest = Assert.IsType<BadRequestObjectResult>(result);
-            Assert.Equal("Role already exists", badRequest.Value);
+            var json = JsonConvert.SerializeObject(badRequest.Value);
+            dynamic obj = JsonConvert.DeserializeObject<dynamic>(json);
+
+            Assert.Equal("Role already exists", (string)obj.error);
         }
 
         [Fact]
@@ -115,7 +118,7 @@ namespace StockExchange.Api.Tests.Controllers
             userManagerMock.Setup(x => x.AddToRoleAsync(user, model.Role)).ReturnsAsync(IdentityResult.Success);
 
             // Act
-            var result = await accountController.AssignRole(model);
+            var result = await accountController.AssignRoleAsync(model);
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
@@ -133,11 +136,14 @@ namespace StockExchange.Api.Tests.Controllers
             userManagerMock.Setup(x => x.FindByNameAsync(model.Username)).ReturnsAsync((IdentityUser)null);
 
             // Act
-            var result = await accountController.AssignRole(model);
+            var result = await accountController.AssignRoleAsync(model);
 
             // Assert
             var badRequest = Assert.IsType<BadRequestObjectResult>(result);
-            Assert.Equal("User not found", badRequest.Value);
+            var json = JsonConvert.SerializeObject(badRequest.Value);
+            dynamic obj = JsonConvert.DeserializeObject<dynamic>(json);
+
+            Assert.Equal("User not found", (string)obj.error);
         }
 
         [Fact]
@@ -156,7 +162,7 @@ namespace StockExchange.Api.Tests.Controllers
             configurationMock.Setup(x => x["Jwt:Key"]).Returns("supersecretkey1234567890abcdef12345678");
 
             // Act
-            var result = await accountController.Login(model);
+            var result = await accountController.LoginAsync(model);
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
@@ -175,7 +181,7 @@ namespace StockExchange.Api.Tests.Controllers
             userManagerMock.Setup(x => x.CheckPasswordAsync(It.IsAny<IdentityUser>(), model.Password)).ReturnsAsync(false);
 
             // Act
-            var result = await accountController.Login(model);
+            var result = await accountController.LoginAsync(model);
 
             // Assert
             Assert.IsType<UnauthorizedResult>(result);

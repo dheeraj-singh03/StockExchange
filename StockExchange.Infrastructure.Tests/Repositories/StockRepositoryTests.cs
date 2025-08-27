@@ -41,7 +41,7 @@ namespace StockExchange.Infrastructure.Tests.Repositories
         }
 
         [Fact]
-        public void GetStockBySymbol_ShouldReturnMatchingStock()
+        public async Task GetStockBySymbol_ShouldReturnMatchingStock()
         {
             // Arrange
             var context = CreateDbContext();
@@ -49,7 +49,7 @@ namespace StockExchange.Infrastructure.Tests.Repositories
             var symbol = "AAPL";
 
             // Act
-            var stock = repository.GetStockBySymbol(symbol);
+            var stock = await repository.GetStockBySymbolAsync(symbol);
 
             // Assert
             Assert.NotNull(stock);

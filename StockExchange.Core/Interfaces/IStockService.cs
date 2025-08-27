@@ -6,7 +6,7 @@ namespace StockExchange.Core.Interfaces
     {
         Task<IList<StockModel>> GetAllStocksAsync();
         Task<IList<StockModel>> GetAllStocksRangeAsync(IList<string> stockSymbols);
-        StockModel GetStock(string stockSymbol);
+        Task<StockModel> GetStockAsync(string stockSymbol);
         Task AddStockAsync(string stockSymbol);
     }
 }

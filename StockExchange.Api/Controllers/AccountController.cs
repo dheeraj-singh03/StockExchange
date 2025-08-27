@@ -25,7 +25,7 @@ namespace StockExchange.Api.Controllers
         }
 
         [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] RegisterBroker model)
+        public async Task<IActionResult> RegisterAsync([FromBody] RegisterBroker model)
         {
             var user = new IdentityUser { UserName = model.Username };
             var result = await userManager.CreateAsync(user, model.Password);
@@ -34,31 +34,31 @@ namespace StockExchange.Api.Controllers
             {
                 return Ok(new { message = "User registered successfully" });
             }
-            return BadRequest(result.Errors);
+            return BadRequest(new { error = result.Errors });
         }
 
         [HttpPost("add-role")]
-        public async Task<IActionResult> AddRole([FromBody] string role)
+        public async Task<IActionResult> AddRoleAsync([FromBody] RoleModel model)
         {
-            if (!await roleManager.RoleExistsAsync(role))
+            if (!await roleManager.RoleExistsAsync(model.Role))
             {
-                var result = await roleManager.CreateAsync(new IdentityRole(role));
+                var result = await roleManager.CreateAsync(new IdentityRole(model.Role));
                 if (result.Succeeded)
                 {
                     return Ok(new { message = "Role added successfully" });
                 }
-                return BadRequest(result.Errors);
+                return BadRequest(new { error = result.Errors });
             }
-            return BadRequest("Role already exists");
+            return BadRequest(new { error = "Role already exists" });
         }
 
         [HttpPost("assign-role")]
-        public async Task<IActionResult> AssignRole([FromBody] BrokerRole model)
+        public async Task<IActionResult> AssignRoleAsync([FromBody] BrokerRole model)
         {
             var user = await userManager.FindByNameAsync(model.Username);
             if (user == null)
             {
-                return BadRequest("User not found");
+                return BadRequest(new { error = "User not found" });
             }
 
             var result = await userManager.AddToRoleAsync(user, model.Role);
@@ -66,11 +66,11 @@ namespace StockExchange.Api.Controllers
             {
                 return Ok(new { message = "Role assigned successfully" });
             }
-            return BadRequest(result.Errors);
+            return BadRequest(new { error = result.Errors });
         }
 
-        [HttpPost("Login")]
-        public async Task<IActionResult> Login([FromBody] BrokerLogin model)
+        [HttpPost("login")]
+        public async Task<IActionResult> LoginAsync([FromBody] BrokerLogin model)
         {
             var user = await userManager.FindByNameAsync(model.Username);
             if (user != null && await userManager.CheckPasswordAsync(user, model.Password))

@@ -45,7 +45,7 @@ namespace StockExchange.Core.Tests.Services
             var trades = new List<TradeNotification>
             {
                 new TradeNotification { StockId = stockId, Price = 100, NumberOfShares = 2 },
-                new TradeNotification { StockId = stockId, Price = 200, NumberOfShares = 4 }
+                new TradeNotification { StockId = stockId, Price = 200, NumberOfShares = 3 }
             };
 
             var stocks = new List<Stock>
@@ -63,7 +63,7 @@ namespace StockExchange.Core.Tests.Services
             // Assert
             Assert.Single(result);
             Assert.Equal("AAPL", result[0].StockSymbol);
-            Assert.Equal(50, result[0].StockPrice);
+            Assert.Equal(160, result[0].StockPrice);
         }
 
         [Fact]
@@ -108,7 +108,7 @@ namespace StockExchange.Core.Tests.Services
             // Assert
             Assert.Single(result);
             Assert.Equal("MSFT", result[0].StockSymbol);
-            Assert.Equal(100, result[0].StockPrice);
+            Assert.Equal(300, result[0].StockPrice);
         }
 
         [Fact]
@@ -129,7 +129,7 @@ namespace StockExchange.Core.Tests.Services
         }
 
         [Fact]
-        public void GetStock_WhenStockExists_ReturnsCalculatedModel()
+        public async Task GetStock_WhenStockExists_ReturnsCalculatedModel()
         {
             // Arrange
             var stockId = faker.Random.Int(1, 1000);
@@ -146,27 +146,27 @@ namespace StockExchange.Core.Tests.Services
             };
 
             stockRepositoryMock
-                .Setup(r => r.GetStockBySymbol("GOOG"))
-                .Returns(stock);
+                .Setup(r => r.GetStockBySymbolAsync("GOOG"))
+                .ReturnsAsync(stock);
 
             // Act
-            var result = stockService.GetStock("GOOG");
+            var result = await stockService.GetStockAsync("GOOG");
 
             // Assert
             Assert.Equal("GOOG", result.StockSymbol);
-            Assert.Equal(100, result.StockPrice);
+            Assert.Equal(500, result.StockPrice);
         }
 
         [Fact]
-        public void GetStock_WhenStockIsNull_ReturnsEmptyModel()
+        public async Task GetStock_WhenStockIsNull_ReturnsEmptyModel()
         {
             // Arrange
             stockRepositoryMock
-                .Setup(r => r.GetStockBySymbol("XYZ"))
-                .Returns((Stock)null);
+                .Setup(r => r.GetStockBySymbolAsync("XYZ"))
+                .ReturnsAsync((Stock)null);
 
             // Act
-            var result = stockService.GetStock("XYZ");
+            var result = await stockService.GetStockAsync("XYZ");
 
             // Assert
             Assert.NotNull(result);

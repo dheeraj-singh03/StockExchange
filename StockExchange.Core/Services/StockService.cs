@@ -1,11 +1,12 @@
-﻿using StockExchange.Core.Interfaces;
+﻿using StockExchange.Core.Entities;
+using StockExchange.Core.Interfaces;
 using StockExchange.Core.Model;
 
 namespace StockExchange.Core.Services
 {
     public class StockService : IStockService
     {
-        public readonly IStockRepository stockRepository;
+        private readonly IStockRepository stockRepository;
 
         public StockService(IStockRepository stockRepository)
         {
@@ -26,15 +27,8 @@ namespace StockExchange.Core.Services
             {
                 foreach (var stock in stocks)
                 {
-                    var trades = stock.TradeNotifications;
-                    var price = trades.Where(x => x.StockId == stock.StockId).Sum(x => x.Price);
-                    var soldShares = trades.Where(x => x.StockId == stock.StockId).Sum(x => x.NumberOfShares);
-                    var model = new StockModel
-                    {
-                        StockSymbol = stock.TickerSymbol,
-                        StockPrice = soldShares == 0 ? 0 : price / soldShares
-                    };
-                    stockModels.Add(model);
+                    var stockModel = GetStockModelFromStock(stock);
+                    stockModels.Add(stockModel);
                 }
             }
             return stockModels;
@@ -49,35 +43,36 @@ namespace StockExchange.Core.Services
             {
                 foreach (var stock in stocks)
                 {
-                    var trades = stock.TradeNotifications;
-                    var price = trades.Where(x => x.StockId == stock.StockId).Sum(x => x.Price);
-                    var soldShares = trades.Where(x => x.StockId == stock.StockId).Sum(x => x.NumberOfShares);
-                    var model = new StockModel
-                    {
-                        StockSymbol = stock.TickerSymbol,
-                        StockPrice = soldShares == 0 ? 0 : price / soldShares
-                    };
-                    stockModels.Add(model);
+                    var stockModel = GetStockModelFromStock(stock);
+                    stockModels.Add(stockModel);
                 }
             }
             return stockModels;
         }
 
-        public StockModel GetStock(string stockSymbol)
+        public async Task<StockModel> GetStockAsync(string stockSymbol)
         {
             var stockModel = new StockModel();
 
-            var stock = stockRepository.GetStockBySymbol(stockSymbol);
+            var stock = await stockRepository.GetStockBySymbolAsync(stockSymbol).ConfigureAwait(false);
             if (stock != null)
             {
-                var trades = stock.TradeNotifications;
-                var price = trades.Where(x => x.StockId == stock.StockId).Sum(x => x.Price);
-                var soldShares = trades.Where(x => x.StockId == stock.StockId).Sum(x => x.NumberOfShares);
-                stockModel.StockSymbol = stock.TickerSymbol;
-                stockModel.StockPrice = soldShares == 0 ? 0 : price / soldShares;
+                stockModel = GetStockModelFromStock(stock);
             }
 
             return stockModel;
+        }
+
+        private StockModel GetStockModelFromStock(Stock stock)
+        {
+            var trades = stock.TradeNotifications;
+            var totalPrice = trades.Where(x => x.StockId == stock.StockId).Sum(x => x.Price * x.NumberOfShares);
+            var totalSoldShares = trades.Where(x => x.StockId == stock.StockId).Sum(x => x.NumberOfShares);
+            return new StockModel
+            {
+                StockSymbol = stock.TickerSymbol,
+                StockPrice = totalSoldShares == 0 ? 0 : (totalPrice / totalSoldShares)
+            };
         }
     }
 }

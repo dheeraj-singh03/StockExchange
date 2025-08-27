@@ -7,6 +7,6 @@ namespace StockExchange.Core.Interfaces
         Task<IEnumerable<Stock>> GetAllStocksAsync();
         Task<IEnumerable<Stock>> GetAllStocksRangeAsync(IList<string> symbols);
         Task AddStockAsync (string tickerSymbol);
-        Stock GetStockBySymbol (string symbol);
+        Task<Stock> GetStockBySymbolAsync (string symbol);
     }
 }

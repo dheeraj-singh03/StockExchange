@@ -46,8 +46,8 @@ namespace StockExchange.Core.Tests.Services
             };
 
             stockRepositoryMock
-                .Setup(r => r.GetStockBySymbol(model.TickerSymbol))
-                .Returns((Stock)null);
+                .Setup(r => r.GetStockBySymbolAsync(model.TickerSymbol))
+                .ReturnsAsync((Stock)null);
 
             // Act
             var result = await tradeNotificationService.ProcessTradeNotificationAsync(model);
@@ -71,8 +71,8 @@ namespace StockExchange.Core.Tests.Services
             };
 
             stockRepositoryMock
-                .Setup(r => r.GetStockBySymbol(model.TickerSymbol))
-                .Returns(stock);
+                .Setup(r => r.GetStockBySymbolAsync(model.TickerSymbol))
+                .ReturnsAsync(stock);
 
             userManagerMock
                 .Setup(u => u.FindByNameAsync(model.BrokerName))
@@ -102,8 +102,8 @@ namespace StockExchange.Core.Tests.Services
             };
 
             stockRepositoryMock
-                .Setup(r => r.GetStockBySymbol(model.TickerSymbol))
-                .Returns(stock);
+                .Setup(r => r.GetStockBySymbolAsync(model.TickerSymbol))
+                .ReturnsAsync(stock);
 
             userManagerMock
                 .Setup(u => u.FindByNameAsync(model.BrokerName))
