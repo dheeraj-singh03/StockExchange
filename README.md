@@ -81,7 +81,8 @@ Content-Type: application/json
 
 {
   "username": "broker1",
-  "password": "Password123!"
+  "password": "Password123!",
+  "email": "test2@test.com"
 }
 ```
 **Response:**
@@ -107,6 +108,8 @@ Content-Type: application/json
 {
   "token": "<JWT_TOKEN>"
 }
+<img width="1658" height="772" alt="image" src="https://github.com/user-attachments/assets/c12c8078-1eeb-4bdb-9e14-7e97570eadb4" />
+
 ```
 
 ### Get All Stocks
@@ -124,6 +127,8 @@ Authorization: Bearer <JWT_TOKEN>
   },
   ...
 ]
+<img width="1431" height="752" alt="image" src="https://github.com/user-attachments/assets/506fff8a-50f8-4438-83f5-e1f0150d955d" />
+
 ```
 
 ### Submit Trade Notification
@@ -134,11 +139,13 @@ Authorization: Bearer <JWT_TOKEN>
 Content-Type: application/json
 
 {
-  "TickerSymbol": "AAPL",
-  "ShareCount": 10,
-  "Price": 100,
-  "BrokerName": "Broker1"
+  "tickerSymbol": "AAPL",
+  "shareCount": 10,
+  "price": 100,
+  "brokerName": "Broker1"
 }
+<img width="1432" height="581" alt="image" src="https://github.com/user-attachments/assets/c1ef85be-77cd-4a54-a9ff-b5ada3f9873e" />
+
 ```
 **Response:**
 ```json
@@ -149,6 +156,7 @@ Content-Type: application/json
 ## Notes
 - All endpoints (except registration and login) require JWT authentication.
 - Use the `/api/account/add-role` and `/api/account/assign-role` endpoints to manage user roles.
+- Use the `/api/stocks/add` endpoint to create stocks
 - The project uses Entity Framework Core with an in-memory provider for demonstration. No persistent data storage is used.
 
 ---
