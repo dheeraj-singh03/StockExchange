@@ -1,0 +1,157 @@
+# StockExchange
+
+A multi-layered .NET 8 Web API project for managing a stock exchange system. The solution is organized using clean architecture principles, separating API, business logic, and data access layers for maintainability and scalability.
+
+## Table of Contents
+- [Features](#features)
+- [Architecture](#architecture)
+- [Project Structure](#project-structure)
+- [Setup Instructions](#setup-instructions)
+- [API Endpoints](#api-endpoints)
+  - [AccountController](#accountcontroller)
+  - [StocksController](#stockscontroller)
+  - [TradeNotificationsController](#tradenotificationscontroller)
+- [Example Requests & Responses](#example-requests--responses)
+- [Notes](#notes)
+
+---
+
+## Features
+- User registration and authentication (JWT-based)
+- Role-based authorization (Read/Write)
+- Stock management (CRUD)
+- Trade notification processing
+
+## Architecture
+- **StockExchange.Api**: Web API layer (controllers, authentication, routing)
+- **StockExchange.Core**: Business logic, domain models, service interfaces
+- **StockExchange.Infrastructure**: Data access (Entity Framework, repositories, DbContext)
+
+This separation ensures loose coupling and testability.
+
+## Project Structure
+```
+StockExchange.sln
+StockExchange.Api/                # API controllers, startup, config
+StockExchange.Core/               # Entities, interfaces, services, models
+StockExchange.Infrastructure/     # DbContext, repositories
+```
+
+## Setup Instructions
+1. **Prerequisites**
+  - [.NET 8 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/8.0)
+
+2. **Clone the repository**
+  ```powershell
+  git clone https://github.com/dheeraj-singh03/StockExchange.git
+  cd StockExchange
+  ```
+
+3. **Run the API**
+  ```powershell
+  dotnet run --project StockExchange.Api
+  ```
+  The API will be available at `https://localhost:5001` or `http://localhost:5000` by default.
+
+> **Note:** This project uses in-memory storage for demo purposes. No external database setup is required.
+
+## API Endpoints
+
+### AccountController
+- `POST /api/account/register` — Register a new broker
+- `POST /api/account/add-role` — Add a new role
+- `POST /api/account/assign-role` — Assign a role to a broker
+- `POST /api/account/login` — Authenticate and receive JWT
+
+### StocksController
+- `GET /api/stocks/get-all` — Get all stocks (Read/Write role)
+- `GET /api/stocks/get-range?tickerSymbols=SYM1,SYM2` — Get stocks by ticker symbols (Read/Write role)
+- `GET /api/stocks/get-single?tickerSymbol=SYM1` — Get a single stock (Read/Write role)
+- `POST /api/stocks/add` — Add a new stock (Write role)
+
+### TradeNotificationsController
+- `POST /api/tradenotifications/trade` — Submit a trade notification (Write role)
+
+## Example Requests & Responses
+
+### Register Broker
+**Request:**
+```http
+POST /api/account/register
+Content-Type: application/json
+
+{
+  "username": "broker1",
+  "password": "Password123!"
+}
+```
+**Response:**
+```json
+{
+  "message": "User registered successfully"
+}
+```
+
+### Login
+**Request:**
+```http
+POST /api/account/login
+Content-Type: application/json
+
+{
+  "username": "broker1",
+  "password": "Password123!"
+}
+```
+**Response:**
+```json
+{
+  "token": "<JWT_TOKEN>"
+}
+```
+
+### Get All Stocks
+**Request:**
+```http
+GET /api/stocks/get-all
+Authorization: Bearer <JWT_TOKEN>
+```
+**Response:**
+```json
+[
+  {
+    "stockSymbol": "AAPL",
+    "companyName": "Apple Inc.",
+    "price": 150.25
+  },
+  ...
+]
+```
+
+### Submit Trade Notification
+**Request:**
+```http
+POST /api/tradenotifications/trade
+Authorization: Bearer <JWT_TOKEN>
+Content-Type: application/json
+
+{
+  "stockSymbol": "AAPL",
+  "quantity": 10,
+  "tradeType": "Buy"
+}
+```
+**Response:**
+```json
+"Trade notification processed successfully."
+```
+
+
+## Notes
+- All endpoints (except registration and login) require JWT authentication.
+- Use the `/api/account/add-role` and `/api/account/assign-role` endpoints to manage user roles.
+- The project uses Entity Framework Core with an in-memory provider for demonstration. No persistent data storage is used.
+
+---
+
+For questions or contributions, please open an issue or pull request.
