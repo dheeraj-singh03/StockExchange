@@ -51,7 +51,6 @@ StockExchange.Infrastructure/     # DbContext, repositories
   ```powershell
   dotnet run --project StockExchange.Api
   ```
-  The API will be available at `https://localhost:5001` or `http://localhost:5000` by default.
 
 > **Note:** This project uses in-memory storage for demo purposes. No external database setup is required.
 
@@ -121,7 +120,6 @@ Authorization: Bearer <JWT_TOKEN>
 [
   {
     "stockSymbol": "AAPL",
-    "companyName": "Apple Inc.",
     "price": 150.25
   },
   ...
@@ -136,9 +134,10 @@ Authorization: Bearer <JWT_TOKEN>
 Content-Type: application/json
 
 {
-  "stockSymbol": "AAPL",
-  "quantity": 10,
-  "tradeType": "Buy"
+  "TickerSymbol": "AAPL",
+  "ShareCount": 10,
+  "Price": 100,
+  "BrokerName": "Broker1"
 }
 ```
 **Response:**
@@ -153,5 +152,3 @@ Content-Type: application/json
 - The project uses Entity Framework Core with an in-memory provider for demonstration. No persistent data storage is used.
 
 ---
-
-For questions or contributions, please open an issue or pull request.
